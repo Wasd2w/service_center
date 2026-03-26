@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Сервісний центр{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root {
+  --sidebar-width: 260px;
+  --sidebar-bg: #1e2a3a;
+  --sidebar-hover: #2d3f54;
+  --sidebar-active: #2563eb;
+  --sidebar-text: #c8d4e3;
+  --sidebar-muted: #6b8099;
+  --topbar-height: 60px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f6f9; color: #1a202c; }
+
+.sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-width);
+  height: 100vh; background: var(--sidebar-bg);
+  display: flex; flex-direction: column; z-index: 1000;
+  transition: transform 0.3s ease;
+}
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-logo .logo-text {
+  font-size: 17px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; gap: 10px; text-decoration: none;
+}
+.sidebar-logo .logo-icon {
+  width: 36px; height: 36px; background: var(--sidebar-active);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff; flex-shrink: 0;
+}
+.sidebar-logo small { display: block; color: var(--sidebar-muted); font-size: 11px; margin-top: 2px; font-weight: 400; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+.nav-section-title {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  color: var(--sidebar-muted); padding: 12px 20px 4px; text-transform: uppercase;
+}
+.sidebar-nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px; color: var(--sidebar-text);
+  text-decoration: none; font-size: 14px; font-weight: 400;
+  border-radius: 0; transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+.sidebar-nav a:hover { background: var(--sidebar-hover); color: #fff; }
+.sidebar-nav a.active {
+  background: var(--sidebar-active); color: #fff;
+  font-weight: 500;
+}
+.sidebar-nav a .bi { font-size: 16px; width: 20px; text-align: center; }
+.sidebar-nav .badge-count {
+  margin-left: auto; font-size: 11px; padding: 2px 7px;
+  background: rgba(255,255,255,0.15); border-radius: 20px; color: #fff;
+}
+.sidebar-footer {
+  padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-footer .user-info {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px; border-radius: 8px; text-decoration: none;
+  transition: background 0.15s;
+}
+.sidebar-footer .user-info:hover { background: var(--sidebar-hover); }
+.sidebar-footer .avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--sidebar-active);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 600; font-size: 14px; flex-shrink: 0;
+}
+.sidebar-footer .user-name { font-size: 13px; font-weight: 500; color: #fff; }
+.sidebar-footer .user-role { font-size: 11px; color: var(--sidebar-muted); }
+
+.main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  height: var(--topbar-height); background: #fff;
+  border-bottom: 1px solid #e5e9f0;
+  display: flex; align-items: center; padding: 0 24px;
+  position: sticky; top: 0; z-index: 100; gap: 12px;
+}
+.topbar .page-title { font-size: 16px; font-weight: 600; color: #1a202c; flex: 1; }
+.topbar .breadcrumb { margin: 0; font-size: 13px; }
+.main-content { flex: 1; padding: 24px; max-width: 1400px; width: 100%; }
+
+.card { border: 1px solid #e5e9f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.card-header { background: #fff; border-bottom: 1px solid #e5e9f0; padding: 14px 20px; font-weight: 600; }
+
+.stat-card { border-radius: 12px; padding: 20px; color: #fff; position: relative; overflow: hidden; }
+.stat-card .stat-icon { font-size: 40px; opacity: 0.25; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); }
+.stat-card .stat-value { font-size: 32px; font-weight: 700; line-height: 1; }
+.stat-card .stat-label { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+.badge-status { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+
+.table-hover tbody tr:hover { background: #f8faff; }
+.table th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; border-bottom: 2px solid #e5e9f0; }
+
+.alert { border-radius: 10px; }
+
+.form-control, .form-select { border-radius: 8px; border-color: #d1d9e0; font-size: 14px; }
+.form-control:focus, .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.form-label { font-weight: 500; font-size: 13px; color: #374151; margin-bottom: 5px; }
+
+.btn { border-radius: 8px; font-size: 14px; font-weight: 500; }
+.btn-primary { background: #2563eb; border-color: #2563eb; }
+.btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
+.priority-urgent { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.priority-high    { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+.priority-normal  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.priority-low     { background: #f9fafb; color: #4b5563; border: 1px solid #d1d5db; }
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main-wrapper { margin-left: 0; }
+}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="{% url 'dashboard' %}" class="logo-text">
+      <div class="logo-icon"><i class="bi bi-tools"></i></div>
+      <div>
+        Сервісний центр
+        <small>Система обліку заявок</small>
+      </div>
+    </a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Головне</div>
+    <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Дашборд
+    </a>
+    <a href="{% url 'repair_list' %}" class="{% if 'repair' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-clipboard-check"></i> Заявки на ремонт
+    </a>
+    <a href="{% url 'repair_create' %}">
+      <i class="bi bi-plus-circle"></i> Нова заявка
+    </a>
+
+    <div class="nav-section-title">Клієнти</div>
+    <a href="{% url 'client_list' %}" class="{% if 'client' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-people"></i> Клієнти
+    </a>
+    <a href="{% url 'client_create' %}">
+      <i class="bi bi-person-plus"></i> Новий клієнт
+    </a>
+
+    <div class="nav-section-title">Аналітика</div>
+    <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+      <i class="bi bi-bar-chart-line"></i> Звіти та аналітика
+    </a>
+    <a href="{% url 'export_excel' %}">
+      <i class="bi bi-file-earmark-excel"></i> Експорт Excel
+    </a>
+
+    {% if user.is_staff %}
+    <div class="nav-section-title">Адміністрування</div>
+    <a href="/admin/" target="_blank">
+      <i class="bi bi-gear"></i> Django Admin
+    </a>
+    {% endif %}
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="{% url 'profile' %}" class="user-info">
+      <div class="avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+      <div>
+        <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="user-role">{% if user.is_staff %}Адміністратор{% else %}Майстер{% endif %}</div>
+      </div>
+      <i class="bi bi-chevron-right ms-auto" style="color:var(--sidebar-muted);font-size:12px;"></i>
+    </a>
+  </div>
+</div>
+
+<div class="main-wrapper">
+  <div class="topbar">
+    <button class="btn btn-sm btn-light d-md-none me-2" onclick="document.getElementById('sidebar').classList.toggle('open')">
+      <i class="bi bi-list fs-5"></i>
+    </button>
+    <div class="page-title">{% block page_title %}{% endblock %}</div>
+    {% block topbar_actions %}{% endblock %}
+    <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary ms-2">
+      <i class="bi bi-box-arrow-right"></i>
+    </a>
+  </div>
+
+  <div class="main-content">
+    {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

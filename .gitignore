@@ -1,0 +1,17 @@
+.idea/
+
+.venv/
+
+db.sqlite3
+
+*.rar
+
+__pycache__/
+*.py[cod]
+*.pyo
+
+.DS_Store
+Thumbs.db
+
+.env
+*.env

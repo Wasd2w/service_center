@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Заявки — Сервісний центр{% endblock %}
+{% block page_title %}Заявки на ремонт{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'export_excel' %}" class="btn btn-sm btn-outline-success me-1">
+  <i class="bi bi-file-earmark-excel me-1"></i>Excel
+</a>
+<a href="{% url 'repair_create' %}" class="btn btn-sm btn-primary">
+  <i class="bi bi-plus-lg me-1"></i>Нова заявка
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-12 col-md-4 col-lg-3">
+        {{ form.search }}
+      </div>
+      <div class="col-6 col-md-2">
+        {{ form.status }}
+      </div>
+      <div class="col-6 col-md-2">
+        {{ form.priority }}
+      </div>
+      <div class="col-6 col-md-2">
+        {{ form.master }}
+      </div>
+      <div class="col-6 col-md-2">
+        {{ form.date_from }}
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="bi bi-search"></i>
+        </button>
+        <a href="{% url 'repair_list' %}" class="btn btn-outline-secondary btn-sm ms-1">
+          <i class="bi bi-x"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-clipboard-list me-2 text-primary"></i>Заявки</span>
+    <span class="badge bg-secondary">{{ total }}</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Номер</th>
+          <th>Клієнт</th>
+          <th>Пристрій</th>
+          <th>Проблема</th>
+          <th>Статус</th>
+          <th>Пріоритет</th>
+          <th>Майстер</th>
+          <th>Дедлайн</th>
+          <th>Дата</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for repair in repairs %}
+        <tr class="{% if repair.is_overdue %}table-danger{% endif %}">
+          <td>
+            <a href="{% url 'repair_detail' repair.pk %}" class="fw-semibold text-primary text-decoration-none">
+              {{ repair.number }}
+            </a>
+          </td>
+          <td>
+            <a href="{% url 'client_detail' repair.client.pk %}" class="text-decoration-none text-dark">
+              {{ repair.client.get_full_name }}
+            </a>
+            <div class="text-muted" style="font-size:11px;">{{ repair.client.phone }}</div>
+          </td>
+          <td class="text-muted" style="font-size:13px;">{{ repair.device|default:"—" }}</td>
+          <td style="max-width:180px;">
+            <span style="font-size:13px;">{{ repair.problem_description|truncatechars:55 }}</span>
+          </td>
+          <td>
+            <span class="badge bg-{{ repair.get_status_color }} badge-status">{{ repair.get_status_display }}</span>
+          </td>
+          <td>
+            <span class="badge badge-status priority-{{ repair.priority }}">{{ repair.get_priority_display }}</span>
+          </td>
+          <td style="font-size:13px;">{{ repair.master.get_full_name|default:'—' }}</td>
+          <td style="font-size:13px;">
+            {% if repair.deadline %}
+              {% if repair.is_overdue %}<span class="text-danger fw-semibold">{% else %}<span>{% endif %}
+                {{ repair.deadline|date:"d.m.Y" }}{% if repair.is_overdue %} <i class="bi bi-alarm"></i>{% endif %}
+              </span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-muted" style="font-size:12px;">{{ repair.created_at|date:"d.m.Y" }}</td>
+          <td>
+            <div class="dropdown">
+              <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li><a class="dropdown-item" href="{% url 'repair_detail' repair.pk %}"><i class="bi bi-eye me-2"></i>Переглянути</a></li>
+                <li><a class="dropdown-item" href="{% url 'repair_edit' repair.pk %}"><i class="bi bi-pencil me-2"></i>Редагувати</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'repair_delete' repair.pk %}"><i class="bi bi-trash me-2"></i>Видалити</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+            Заявок не знайдено
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

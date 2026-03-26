@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}{{ client.get_full_name }} — Сервісний центр{% endblock %}
+{% block page_title %}{{ client.get_full_name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'client_edit' client.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil me-1"></i>Редагувати</a>
+<a href="{% url 'repair_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Нова заявка</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-12 col-md-4">
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-person me-2 text-primary"></i>Контактна інформація</div>
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <div style="width:64px;height:64px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:700;margin:0 auto 8px;">
+            {{ client.first_name|first|upper }}{{ client.last_name|first|upper }}
+          </div>
+          <h5 class="mb-0">{{ client.get_full_name }}</h5>
+        </div>
+        <div class="row g-2" style="font-size:13px;">
+          <div class="col-5 text-muted">Телефон:</div>
+          <div class="col-7 fw-semibold">{{ client.phone }}</div>
+          {% if client.email %}
+          <div class="col-5 text-muted">Email:</div>
+          <div class="col-7">{{ client.email }}</div>
+          {% endif %}
+          {% if client.address %}
+          <div class="col-5 text-muted">Адреса:</div>
+          <div class="col-7">{{ client.address }}</div>
+          {% endif %}
+          <div class="col-5 text-muted">З нами з:</div>
+          <div class="col-7">{{ client.created_at|date:"d.m.Y" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-phone me-2 text-primary"></i>Пристрої</span>
+        <a href="{% url 'device_create' client.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2"><i class="bi bi-plus"></i></a>
+      </div>
+      <div class="card-body p-0">
+        {% for device in devices %}
+        <div class="p-3 border-bottom" style="font-size:13px;">
+          <div class="fw-semibold">{{ device }}</div>
+          {% if device.serial_number %}<div class="text-muted">S/N: {{ device.serial_number }}</div>{% endif %}
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-3 px-3" style="font-size:13px;">
+          <a href="{% url 'device_create' client.pk %}"><i class="bi bi-plus-circle me-1"></i>Додати пристрій</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-8">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-clipboard-check me-2 text-primary"></i>Заявки клієнта</span>
+        <span class="badge bg-secondary">{{ repairs.count }}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr><th>Номер</th><th>Пристрій</th><th>Статус</th><th>Майстер</th><th>Вартість</th><th>Дата</th></tr>
+          </thead>
+          <tbody>
+            {% for repair in repairs %}
+            <tr onclick="location.href='{% url 'repair_detail' repair.pk %}'" style="cursor:pointer;">
+              <td><a href="{% url 'repair_detail' repair.pk %}" class="fw-semibold text-primary text-decoration-none">{{ repair.number }}</a></td>
+              <td style="font-size:13px;">{{ repair.device|default:"—" }}</td>
+              <td><span class="badge bg-{{ repair.get_status_color }} badge-status">{{ repair.get_status_display }}</span></td>
+              <td style="font-size:13px;">{{ repair.master.get_full_name|default:"—" }}</td>
+              <td style="font-size:13px;">{{ repair.estimated_cost|default:"—" }}{% if repair.estimated_cost %} грн{% endif %}</td>
+              <td class="text-muted" style="font-size:12px;">{{ repair.created_at|date:"d.m.Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">Заявок немає</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

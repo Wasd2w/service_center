@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Сервісний центр{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'client_list' %}" class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-arrow-left me-1"></i>Назад
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-12 col-md-8">
+<div class="card">
+  <div class="card-header">
+    <i class="bi bi-person-plus me-2 text-primary"></i>{{ title }}
+  </div>
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger mb-3">
+        {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      
+      <h6 class="text-muted mb-3"><i class="bi bi-person me-2"></i>Особисті дані</h6>
+      <div class="row g-3 mb-4 pb-3 border-bottom">
+        <div class="col-md-6">
+          <label class="form-label">Ім'я <span class="text-danger">*</span></label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+            <div class="text-danger mt-1" style="font-size:13px;">{{ form.first_name.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Прізвище <span class="text-danger">*</span></label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+            <div class="text-danger mt-1" style="font-size:13px;">{{ form.last_name.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Телефон <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text">🇺🇦</span>
+            {{ form.phone }}
+          </div>
+          {% if form.phone.errors %}
+            <div class="text-danger mt-1" style="font-size:13px;">{{ form.phone.errors.0 }}</div>
+          {% endif %}
+          <div class="form-text">Формат: +380XXXXXXXXX (9 цифр після +380)</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="text-danger mt-1" style="font-size:13px;">{{ form.email.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      
+      <h6 class="text-muted mb-3"><i class="bi bi-geo-alt me-2"></i>Адреса (необов'язково)</h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Місто</label>
+          {{ form.city }}
+          <datalist id="city-list">
+            {% for city in cities %}
+              <option value="{{ city }}">
+            {% endfor %}
+          </datalist>
+          {% if form.city.errors %}
+            <div class="text-danger mt-1" style="font-size:13px;">{{ form.city.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Вулиця</label>
+          {{ form.street }}
+          {% if form.street.errors %}
+            <div class="text-danger mt-1" style="font-size:13px;">{{ form.street.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Будинок / кв.</label>
+          {{ form.building }}
+          {% if form.building.errors %}
+            <div class="text-danger mt-1" style="font-size:13px;">{{ form.building.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-4 pt-3 border-top">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>Зберегти
+        </button>
+        <a href="{% url 'client_list' %}" class="btn btn-outline-secondary">Скасувати</a>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const phoneInput = document.getElementById('phone-input');
+if (phoneInput) {
+  const PREFIX = '+380';
+
+  if (!phoneInput.value.startsWith(PREFIX)) {
+    phoneInput.value = PREFIX;
+  }
+
+  phoneInput.addEventListener('focus', function () {
+    if (!this.value.startsWith(PREFIX)) this.value = PREFIX;
+    setTimeout(() => {
+      if (this.selectionStart < PREFIX.length) {
+        this.setSelectionRange(PREFIX.length, PREFIX.length);
+      }
+    }, 0);
+  });
+
+  phoneInput.addEventListener('click', function () {
+    if (this.selectionStart < PREFIX.length) {
+      this.setSelectionRange(PREFIX.length, PREFIX.length);
+    }
+  });
+
+  phoneInput.addEventListener('keydown', function (e) {
+    const pos = this.selectionStart;
+    if ((e.key === 'Backspace' || e.key === 'Delete') && pos <= PREFIX.length) {
+      e.preventDefault();
+      return;
+    }
+    const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) {
+      e.preventDefault();
+    }
+  });
+
+  phoneInput.addEventListener('input', function () {
+    let val = this.value;
+    if (!val.startsWith(PREFIX)) val = PREFIX;
+    let digits = val.slice(PREFIX.length).replace(/\D/g, '').slice(0, 9);
+    this.value = PREFIX + digits;
+  });
+}
+</script>
+{% endblock %}

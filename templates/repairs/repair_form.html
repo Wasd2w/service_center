@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Сервісний центр{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% if repair %}{% url 'repair_detail' repair.pk %}{% else %}{% url 'repair_list' %}{% endif %}" class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-arrow-left me-1"></i>Назад
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.section-title {
+  font-size: 12px; font-weight: 600; color: #6b7280;
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 14px; padding-bottom: 6px;
+  border-bottom: 1px solid #e5e9f0;
+}
+.lock-note { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+.locked-text {
+  padding: 10px 14px; background: #f8f9fa;
+  border: 1px solid #dee2e6; border-radius: 8px;
+  font-size: 14px; line-height: 1.6; min-height: 44px;
+}
+.locked-text.diagnosis { background: #f0fdf4; border-color: #bbf7d0; }
+.locked-text.work      { background: #fffbeb; border-color: #fde68a; }
+.locked-text.muted-msg { color: #9ca3af; font-size: 13px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-12 col-lg-9">
+<div class="card">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-clipboard-plus text-primary"></i>
+    <span class="fw-semibold">{{ title }}</span>
+    {% if repair %}
+    <span class="ms-auto badge bg-{{ repair.get_status_color }} badge-status">{{ repair.get_status_display }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body p-4">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger mb-3">
+        {% for e in form.non_field_errors %}<div><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if not repair %}
+      <div class="mb-4">
+        <div class="section-title"><i class="bi bi-person me-2"></i>Клієнт та пристрій</div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Клієнт <span class="text-danger">*</span></label>
+            <select name="client" id="id_client" class="form-select" required>
+              {% for client in clients %}
+              <option value="{{ client.pk }}" {% if form.client.value == client.pk|stringformat:"s" %}selected{% endif %}>
+                {{ client.last_name }} {{ client.first_name }}
+              </option>
+              {% endfor %}
+            </select>
+            {% if form.client.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.client.errors.0 }}</div>{% endif %}
+            <div class="form-text"><a href="{% url 'client_create' %}" target="_blank"><i class="bi bi-plus-circle me-1"></i>Додати нового клієнта</a></div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Пристрій <span class="text-muted fw-normal">(необов'язково)</span></label>
+            <select name="device" id="id_device" class="form-select"></select>
+            {% if form.device.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.device.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="mb-4">
+        <div class="section-title"><i class="bi bi-sliders me-2"></i>Параметри заявки</div>
+        <div class="row g-3">
+
+          {% if repair %}
+          <div class="col-md-6">
+            <label class="form-label">Статус <span class="text-danger">*</span></label>
+            {{ form.status }}
+            {% if form.status.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.status.errors.0 }}</div>{% endif %}
+            <div class="form-text">Доступні лише дозволені переходи вперед.</div>
+          </div>
+          {% endif %}
+
+          <div class="col-md-6">
+            <label class="form-label">Пріоритет</label>
+            {{ form.priority }}
+          </div>
+
+          {% if repair %}
+          <div class="col-md-6">
+            <label class="form-label">
+              Майстер
+              {% if repair.status in 'in_progress waiting_parts done' %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.master }}
+            {% if form.master.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.master.errors.0 }}</div>{% endif %}
+            {% if not request.user.is_staff %}
+            <div class="form-text"><i class="bi bi-info-circle me-1"></i>Ви можете призначити лише себе.</div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <div class="col-md-6">
+            <label class="form-label">Дедлайн</label>
+            {{ form.deadline }}
+            {% if form.deadline.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.deadline.errors.0 }}</div>{% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="section-title"><i class="bi bi-cash-coin me-2"></i>Фінанси</div>
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="form-label">Орієнтовна вартість (грн)</label>
+            {% if repair and repair.status in 'in_progress waiting_parts done issued cancelled' %}
+            <div class="locked-text">{{ repair.estimated_cost|default:'—' }}{% if repair.estimated_cost %} грн{% endif %}</div>
+            <div class="lock-note"><i class="bi bi-lock me-1"></i>Заблоковано після початку роботи.</div>
+            {% else %}
+            {{ form.estimated_cost }}
+            {% if form.estimated_cost.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.estimated_cost.errors.0 }}</div>{% endif %}
+            {% endif %}
+          </div>
+
+          {% if repair %}
+          <div class="col-md-6">
+            <label class="form-label">
+              Вартість робіт (грн)
+              {% if repair.status == 'in_progress' %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {% if repair.status in 'done issued cancelled' %}
+            <div class="locked-text">{{ repair.labor_cost|default:'0' }} грн</div>
+            <div class="lock-note"><i class="bi bi-lock me-1"></i>Заблоковано після виконання.</div>
+            {% elif repair.status == 'in_progress' %}
+            {{ form.labor_cost }}
+            {% if form.labor_cost.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.labor_cost.errors.0 }}</div>{% endif %}
+            <div class="form-text">Лише вартість робіт, без запчастин. Введіть 0 якщо безкоштовно.</div>
+            {% else %}
+            <div class="locked-text muted-msg"><i class="bi bi-lock me-2"></i>Доступно при статусі «В роботі»</div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <div class="section-title"><i class="bi bi-wrench me-2"></i>Технічна інформація</div>
+        <div class="row g-3">
+
+          <div class="col-12">
+            <label class="form-label">Опис проблеми <span class="text-danger">*</span></label>
+            {% if repair %}
+            <div class="locked-text">{{ repair.problem_description }}</div>
+            <div class="lock-note"><i class="bi bi-lock me-1"></i>Опис не змінюється після створення.</div>
+            {% else %}
+            {{ form.problem_description }}
+            {% if form.problem_description.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.problem_description.errors.0 }}</div>{% endif %}
+            {% endif %}
+          </div>
+
+          {% if repair %}
+
+          <div class="col-12">
+            <label class="form-label">
+              Діагноз
+              {% if repair.status in 'diagnosed in_progress waiting_parts done' %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {% if repair.status == 'new' %}
+            <div class="locked-text muted-msg"><i class="bi bi-lock me-2"></i>Недоступно — спочатку встановіть статус «Діагностовано»</div>
+            {% elif repair.status == 'issued' %}
+            <div class="locked-text diagnosis">{{ repair.diagnosis|default:'—' }}</div>
+            <div class="lock-note"><i class="bi bi-lock me-1"></i>Заблоковано після видачі.</div>
+            {% else %}
+            {{ form.diagnosis }}
+            {% if form.diagnosis.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.diagnosis.errors.0 }}</div>{% endif %}
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">
+              Виконані роботи
+              {% if repair.status == 'done' %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {% if repair.status in 'new diagnosed waiting_parts' %}
+            <div class="locked-text muted-msg"><i class="bi bi-lock me-2"></i>Доступно після переходу в «В роботі»</div>
+            {% elif repair.status == 'issued' %}
+            <div class="locked-text work">{{ repair.work_done|default:'—' }}</div>
+            <div class="lock-note"><i class="bi bi-lock me-1"></i>Заблоковано після видачі.</div>
+            {% else %}
+            {{ form.work_done }}
+            {% if form.work_done.errors %}<div class="text-danger mt-1" style="font-size:13px;">{{ form.work_done.errors.0 }}</div>{% endif %}
+            {% endif %}
+          </div>
+
+          {% endif %}
+
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-4 pt-3 border-top">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>{{ action }}
+        </button>
+        <a href="{% if repair %}{% url 'repair_detail' repair.pk %}{% else %}{% url 'repair_list' %}{% endif %}"
+           class="btn btn-outline-secondary">Скасувати</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const clientSel = document.getElementById('id_client');
+const deviceSel = document.getElementById('id_device');
+
+if (clientSel && deviceSel) {
+  function loadDevices(clientId, selectedDeviceId) {
+    if (!clientId) { deviceSel.innerHTML = ''; return; }
+    deviceSel.innerHTML = '<option disabled>Завантаження...</option>';
+    fetch('/api/client-devices/?client_id=' + clientId)
+      .then(r => r.json())
+      .then(devices => {
+        deviceSel.innerHTML = '';
+        if (!devices.length) {
+          deviceSel.innerHTML = '<option disabled>Пристроїв не знайдено — додайте через картку клієнта</option>';
+        } else {
+          devices.forEach(d => {
+            const sel = selectedDeviceId && d.id == selectedDeviceId ? 'selected' : '';
+            deviceSel.innerHTML += `<option value="${d.id}" ${sel}>${d.name}</option>`;
+          });
+        }
+      })
+      .catch(() => { deviceSel.innerHTML = '<option disabled>Помилка завантаження</option>'; });
+  }
+
+  clientSel.addEventListener('change', function() { loadDevices(this.value, null); });
+
+  const initialClient = clientSel.value;
+  const initialDevice = '{{ form.device.value|default:"" }}';
+  if (initialClient) loadDevices(initialClient, initialDevice);
+}
+</script>
+{% endblock %}

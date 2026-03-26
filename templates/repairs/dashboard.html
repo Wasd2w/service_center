@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Дашборд — Сервісний центр{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'repair_create' %}" class="btn btn-primary btn-sm">
+  <i class="bi bi-plus-lg me-1"></i>Нова заявка
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-card" style="background:linear-gradient(135deg,#2563eb,#3b82f6);">
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">Всього заявок</div>
+      <i class="bi bi-clipboard-check stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-card" style="background:linear-gradient(135deg,#0891b2,#06b6d4);">
+      <div class="stat-value">{{ stats.new }}</div>
+      <div class="stat-label">Нових</div>
+      <i class="bi bi-inbox stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-card" style="background:linear-gradient(135deg,#d97706,#f59e0b);">
+      <div class="stat-value">{{ stats.in_progress }}</div>
+      <div class="stat-label">В роботі</div>
+      <i class="bi bi-wrench stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-card" style="background:linear-gradient(135deg,#059669,#10b981);">
+      <div class="stat-value">{{ stats.done }}</div>
+      <div class="stat-label">Виконано</div>
+      <i class="bi bi-check-circle stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-card" style="background:linear-gradient(135deg,#dc2626,#ef4444);">
+      <div class="stat-value">{{ stats.overdue }}</div>
+      <div class="stat-label">Прострочено</div>
+      <i class="bi bi-exclamation-triangle stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-card" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);">
+      <div class="stat-value">{{ stats.my_repairs }}</div>
+      <div class="stat-label">Мої активні</div>
+      <i class="bi bi-person-check stat-icon"></i>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-8">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-clock-history me-2 text-primary"></i>Останні заявки</span>
+        <a href="{% url 'repair_list' %}" class="btn btn-sm btn-outline-primary">Всі заявки</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Номер</th>
+              <th>Клієнт</th>
+              <th>Пристрій</th>
+              <th>Статус</th>
+              <th>Майстер</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for repair in recent_repairs %}
+            <tr style="cursor:pointer;" onclick="location.href='{% url 'repair_detail' repair.pk %}'">
+              <td><a href="{% url 'repair_detail' repair.pk %}" class="fw-semibold text-primary text-decoration-none">{{ repair.number }}</a></td>
+              <td>{{ repair.client.get_full_name }}</td>
+              <td class="text-muted" style="font-size:13px;">{{ repair.device|default:"—" }}</td>
+              <td>
+                <span class="badge bg-{{ repair.get_status_color }} badge-status">{{ repair.get_status_display }}</span>
+              </td>
+              <td style="font-size:13px;">{{ repair.master.get_full_name|default:"—" }}</td>
+              <td class="text-muted" style="font-size:12px;">{{ repair.created_at|date:"d.m.Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">Заявок ще немає</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-exclamation-circle-fill text-danger me-2"></i>
+        <span>Термінові заявки</span>
+      </div>
+      <div class="card-body p-0">
+        {% for repair in urgent_repairs %}
+        <a href="{% url 'repair_detail' repair.pk %}" class="d-flex align-items-start p-3 border-bottom text-decoration-none text-dark" style="transition:background .15s;" onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
+          <span class="badge priority-{{ repair.priority }} badge-status me-3 mt-1 flex-shrink-0">{{ repair.get_priority_display }}</span>
+          <div style="min-width:0;">
+            <div class="fw-semibold text-primary" style="font-size:13px;">{{ repair.number }}</div>
+            <div style="font-size:13px;">{{ repair.client.get_full_name }}</div>
+            <div class="text-muted" style="font-size:12px;">{{ repair.problem_description|truncatechars:50 }}</div>
+          </div>
+          {% if repair.is_overdue %}
+          <span class="ms-auto text-danger flex-shrink-0"><i class="bi bi-alarm-fill"></i></span>
+          {% endif %}
+        </a>
+        {% empty %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-check-circle-fill text-success fs-3 d-block mb-2"></i>
+          Термінових заявок немає
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

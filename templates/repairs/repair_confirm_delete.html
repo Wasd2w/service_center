@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Видалення заявки{% endblock %}
+{% block page_title %}Видалення заявки{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-6">
+<div class="card border-danger">
+  <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle me-2"></i>Підтвердження видалення</div>
+  <div class="card-body">
+    <p>Ви впевнені, що хочете видалити заявку <strong>{{ repair.number }}</strong>?</p>
+    <p class="text-muted">Клієнт: {{ repair.client.get_full_name }}<br>Проблема: {{ repair.problem_description|truncatechars:100 }}</p>
+    <div class="alert alert-warning"><i class="bi bi-exclamation-circle me-2"></i>Цю дію неможливо скасувати.</div>
+    <div class="d-flex gap-2">
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Так, видалити</button>
+      </form>
+      <a href="{% url 'repair_detail' repair.pk %}" class="btn btn-outline-secondary">Скасувати</a>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}

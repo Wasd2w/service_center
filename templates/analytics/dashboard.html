@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Аналітика — Сервісний центр{% endblock %}
+{% block page_title %}Звіти та аналітика{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'export_excel' %}" class="btn btn-sm btn-outline-success">
+  <i class="bi bi-file-earmark-excel me-1"></i>Експорт Excel
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div style="font-size:36px;font-weight:700;color:#2563eb;">{{ total_repairs }}</div>
+      <div class="text-muted" style="font-size:13px;">Всього заявок</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div style="font-size:36px;font-weight:700;color:#059669;">{{ completed_repairs }}</div>
+      <div class="text-muted" style="font-size:13px;">Виконано</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div style="font-size:36px;font-weight:700;color:#7c3aed;">{{ total_clients }}</div>
+      <div class="text-muted" style="font-size:13px;">Клієнтів</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div style="font-size:36px;font-weight:700;color:#d97706;">{{ total_revenue|floatformat:0 }}</div>
+      <div class="text-muted" style="font-size:13px;">Дохід (грн)</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-bar-chart me-2 text-primary"></i>Заявки по місяцях (останні 12 міс.)</div>
+      <div class="card-body"><canvas id="monthlyChart" height="110"></canvas></div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-pie-chart me-2 text-primary"></i>Статуси заявок</div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <canvas id="statusChart" height="200" style="max-width:260px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-people me-2 text-primary"></i>Завантаженість майстрів</div>
+      <div class="card-body"><canvas id="mastersChart" height="150"></canvas></div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-3">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-flag me-2 text-primary"></i>Пріоритети</div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <canvas id="priorityChart" height="200" style="max-width:200px;"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-3">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-graph-up me-2 text-primary"></i>Активність (30 днів)</div>
+      <div class="card-body"><canvas id="dailyChart" height="200"></canvas></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const monthly = {{ monthly_chart|safe }};
+const status  = {{ status_chart|safe }};
+const masters = {{ masters_chart|safe }};
+const priority= {{ priority_chart|safe }};
+const daily   = {{ daily_chart|safe }};
+
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#6b7280';
+
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'bar',
+  data: {
+    labels: monthly.labels,
+    datasets: [
+      { label: 'Заявок', data: monthly.counts, backgroundColor: 'rgba(37,99,235,0.7)', borderRadius: 5, yAxisID: 'y' },
+      { label: 'Дохід (грн)', data: monthly.revenue, backgroundColor: 'rgba(5,150,105,0.5)', borderRadius: 5, yAxisID: 'y1' }
+    ]
+  },
+  options: {
+    responsive: true, interaction: { mode: 'index' },
+    scales: {
+      y: { position: 'left', grid: { color: '#f0f0f0' }, ticks: { stepSize: 1 } },
+      y1: { position: 'right', grid: { drawOnChartArea: false } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+const statusColors = ['#2563eb','#0891b2','#f59e0b','#9ca3af','#10b981','#059669','#ef4444'];
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: { labels: status.labels, datasets: [{ data: status.data, backgroundColor: statusColors, borderWidth: 2, borderColor: '#fff' }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 8 } } } }
+});
+
+new Chart(document.getElementById('mastersChart'), {
+  type: 'bar',
+  data: {
+    labels: masters.labels,
+    datasets: [
+      { label: 'Активних', data: masters.active, backgroundColor: 'rgba(245,158,11,0.8)', borderRadius: 4 },
+      { label: 'Виконано', data: masters.done, backgroundColor: 'rgba(16,185,129,0.8)', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, indexAxis: 'y',
+    scales: { x: { stacked: false, grid: { color: '#f0f0f0' } } },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+const priorityColors = ['#9ca3af','#3b82f6','#f59e0b','#ef4444'];
+new Chart(document.getElementById('priorityChart'), {
+  type: 'doughnut',
+  data: { labels: priority.labels, datasets: [{ data: priority.data, backgroundColor: priorityColors, borderWidth: 2, borderColor: '#fff' }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } } } }
+});
+
+new Chart(document.getElementById('dailyChart'), {
+  type: 'line',
+  data: {
+    labels: daily.labels,
+    datasets: [{ label: 'Заявок', data: daily.data, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.4, pointRadius: 3 }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { grid: { color: '#f0f0f0' }, ticks: { stepSize: 1 } }, x: { ticks: { maxRotation: 45 } } },
+    plugins: { legend: { display: false } }
+  }
+});
+</script>
+{% endblock %}
