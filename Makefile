@@ -25,3 +25,13 @@ install-hooks:
 	pip install pre-commit
 	pre-commit install
 	@echo "Pre-commit hooks installed"
+
+# Документація
+docs:  ## Генерує HTML документацію через Sphinx
+	sphinx-build -b html docs/source docs/build/html
+
+docs-clean:  ## Видаляє згенеровану документацію
+	rm -rf docs/build
+
+lint-docs:  ## Перевіряє якість docstrings (pydocstyle)
+	pydocstyle apps/ --convention=google
