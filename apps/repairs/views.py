@@ -29,9 +29,9 @@ def dashboard(request):
         'in_progress': repairs.filter(status='in_progress').count(),
         'done':        repairs.filter(status='done').count(),
         'overdue':     repairs.filter(deadline__lt=today)
-                               .exclude(status__in=Repair.CLOSED_STATUSES).count(),
+                              .exclude(status__in=Repair.CLOSED_STATUSES).count(),
         'my_repairs':  repairs.filter(master=request.user)
-                               .exclude(status__in=Repair.CLOSED_STATUSES).count(),
+                              .exclude(status__in=Repair.CLOSED_STATUSES).count(),
     }
     recent_repairs = repairs.order_by('-created_at')[:10]
     urgent_repairs = (repairs
@@ -101,8 +101,9 @@ def repair_detail(request, pk):
 
         elif 'add_part' in request.POST:
             if not parts_allowed:
-                messages.error(request,
-                    'Запчастини можна додавати лише при статусах: '         
+                messages.error(
+                    request,
+                    'Запчастини можна додавати лише при статусах:'
                     'Діагностовано, В роботі, Очікування запчастин.')
                 return redirect('repair_detail', pk=pk)
             part_form = PartForm(request.POST)
@@ -113,7 +114,7 @@ def repair_detail(request, pk):
                 messages.success(request, 'Запчастину додано.')
                 return redirect('repair_detail', pk=pk)
 
-    parts      = repair.parts.all()
+    parts = repair.parts.all()
     parts_total = sum(p.total() for p in parts)
     labor_cost  = repair.labor_cost or 0
     return render(request, 'repairs/repair_detail.html', {
@@ -186,7 +187,8 @@ def repair_edit(request, pk):
 def repair_delete(request, pk):
     repair = get_object_or_404(Repair, pk=pk)
     if repair.status in [Repair.STATUS_ISSUED, Repair.STATUS_DONE]:
-        messages.error(request,
+        messages.error(
+            request,
             f'Заявку зі статусом «{repair.get_status_display()}» видалити неможливо.')
         return redirect('repair_detail', pk=pk)
     if request.method == 'POST':
@@ -270,7 +272,8 @@ def delete_part(request, pk):
     part   = get_object_or_404(Part, pk=pk)
     repair = part.repair
     if not repair.can_add_parts():
-        messages.error(request,
+        messages.error(
+            request,
             'Не можна видаляти запчастини при поточному статусі заявки.')
         return redirect('repair_detail', pk=repair.pk)
     if request.method == 'POST':

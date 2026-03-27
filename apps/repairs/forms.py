@@ -60,9 +60,12 @@ class ClientForm(forms.ModelForm):
                 'id': 'phone-input',
                 'placeholder': '+380XXXXXXXXX',
                 'maxlength': '13'}),
-            'email':    forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
-            'street':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'вул. Хрещатик'}),
-            'building': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12, кв. 34'}),
+            'email':    forms.EmailInput(attrs={
+                'class': 'form-control', 'placeholder': 'email@example.com'}),
+            'street':   forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'вул. Хрещатик'}),
+            'building': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': '12, кв. 34'}),
         }
 
     def clean_first_name(self):
@@ -87,11 +90,16 @@ class DeviceForm(forms.ModelForm):
         model = Device
         fields = ['device_type', 'brand', 'model', 'serial_number', 'notes']
         widgets = {
-            'device_type':   forms.Select(attrs={'class': 'form-select'}),
-            'brand':         forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Samsung, Apple, HP...'}),
-            'model':         forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Galaxy S21, MacBook Pro 14...'}),
-            'serial_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Лише A-Z та 0-9, напр. SN12345ABC'}),
-            'notes':         forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'device_type':   forms.Select(attrs={
+                'class': 'form-select'}),
+            'brand':         forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'Samsung, Apple, HP...'}),
+            'model':         forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'Galaxy S21, MacBook Pro 14...'}),
+            'serial_number': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'Лише A-Z та 0-9, напр. SN12345ABC'}),
+            'notes':         forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 2}),
         }
 
     def clean_brand(self):
@@ -113,7 +121,8 @@ class RepairForm(forms.ModelForm):
             'client': forms.Select(attrs={'class': 'form-select'}),
             'device': forms.Select(attrs={'class': 'form-select'}),
             'problem_description': forms.Textarea(attrs={
-                'class': 'form-control', 'rows': 4,
+                'class': 'form-control',
+                'rows': 4,
                 'placeholder': 'Опишіть несправність детально (мінімум 10 символів)...'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
             'estimated_cost': forms.NumberInput(attrs={
@@ -397,18 +406,22 @@ class RepairFilterForm(forms.Form):
     STATUS_CHOICES   = [('', 'Всі статуси')]    + Repair.STATUS_CHOICES
     PRIORITY_CHOICES = [('', 'Всі пріоритети')] + Repair.PRIORITY_CHOICES
 
-    search = forms.CharField(required=False,
+    search = forms.CharField(
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control', 'placeholder': 'Пошук за номером, клієнтом...'}))
-    status = forms.ChoiceField(choices=STATUS_CHOICES, required=False,
+    status = forms.ChoiceField(
+        choices=STATUS_CHOICES, required=False,
         widget=forms.Select(attrs={'class': 'form-select'}))
-    priority = forms.ChoiceField(choices=PRIORITY_CHOICES, required=False,
+    priority = forms.ChoiceField(
+        choices=PRIORITY_CHOICES, required=False,
         widget=forms.Select(attrs={'class': 'form-select'}))
     master = forms.ModelChoiceField(
         queryset=User.objects.filter(is_active=True),
         required=False, empty_label='Всі майстри',
         widget=forms.Select(attrs={'class': 'form-select'}))
-    date_from = forms.DateField(required=False,
+    date_from = forms.DateField(
+        required=False,
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     date_to = forms.DateField(required=False,
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))

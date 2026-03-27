@@ -42,12 +42,14 @@ class Device(models.Model):
         ('tv',      'Телевізор'),
         ('other',   'Інше'),
     ]
-    client        = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='devices', verbose_name='Клієнт')
-    device_type   = models.CharField('Тип пристрою', max_length=20, choices=DEVICE_TYPES)
-    brand         = models.CharField('Бренд', max_length=100)
-    model         = models.CharField('Модель', max_length=100)
+    client = models.ForeignKey(
+        Client, on_delete=models.CASCADE,
+        related_name='devices', verbose_name='Клієнт')
+    device_type = models.CharField('Тип пристрою', max_length=20, choices=DEVICE_TYPES)
+    brand = models.CharField('Бренд', max_length=100)
+    model = models.CharField('Модель', max_length=100)
     serial_number = models.CharField('Серійний номер', max_length=100, blank=True)
-    notes         = models.TextField('Примітки', blank=True)
+    notes = models.TextField('Примітки', blank=True)
 
     class Meta:
         verbose_name = 'Пристрій'
@@ -58,13 +60,13 @@ class Device(models.Model):
 
 
 class Repair(models.Model):
-    STATUS_NEW           = 'new'
-    STATUS_DIAGNOSED     = 'diagnosed'
-    STATUS_IN_PROGRESS   = 'in_progress'
+    STATUS_NEW = 'new'
+    STATUS_DIAGNOSED = 'diagnosed'
+    STATUS_IN_PROGRESS = 'in_progress'
     STATUS_WAITING_PARTS = 'waiting_parts'
-    STATUS_DONE          = 'done'
-    STATUS_ISSUED        = 'issued'
-    STATUS_CANCELLED     = 'cancelled'
+    STATUS_DONE = 'done'
+    STATUS_ISSUED = 'issued'
+    STATUS_CANCELLED = 'cancelled'
 
     STATUS_CHOICES = [
         (STATUS_NEW,           'Нова заявка'),
@@ -83,13 +85,17 @@ class Repair(models.Model):
         ('urgent', 'Терміновий'),
     ]
 
-    ACTIVE_STATUSES          = [STATUS_NEW, STATUS_DIAGNOSED, STATUS_IN_PROGRESS, STATUS_WAITING_PARTS]
-    CLOSED_STATUSES          = [STATUS_DONE, STATUS_ISSUED, STATUS_CANCELLED]
-    COST_LOCKED_STATUSES     = [STATUS_IN_PROGRESS, STATUS_WAITING_PARTS, STATUS_DONE, STATUS_ISSUED, STATUS_CANCELLED]
-    MASTER_REQUIRED_STATUSES = [STATUS_IN_PROGRESS, STATUS_WAITING_PARTS, STATUS_DONE, STATUS_ISSUED]
+    ACTIVE_STATUSES = [STATUS_NEW, STATUS_DIAGNOSED, STATUS_IN_PROGRESS, STATUS_WAITING_PARTS]
+    CLOSED_STATUSES = [STATUS_DONE, STATUS_ISSUED, STATUS_CANCELLED]
+    COST_LOCKED_STATUSES = [
+        STATUS_IN_PROGRESS, STATUS_WAITING_PARTS,
+        STATUS_DONE, STATUS_ISSUED, STATUS_CANCELLED]
+    MASTER_REQUIRED_STATUSES = [
+        STATUS_IN_PROGRESS, STATUS_WAITING_PARTS,
+        STATUS_DONE, STATUS_ISSUED]
 
-    DIAGNOSIS_EDITABLE_STATUSES  = [STATUS_DIAGNOSED, STATUS_IN_PROGRESS, STATUS_WAITING_PARTS]
-    WORK_DONE_EDITABLE_STATUSES  = [STATUS_IN_PROGRESS, STATUS_DONE]
+    DIAGNOSIS_EDITABLE_STATUSES = [STATUS_DIAGNOSED, STATUS_IN_PROGRESS, STATUS_WAITING_PARTS]
+    WORK_DONE_EDITABLE_STATUSES = [STATUS_IN_PROGRESS, STATUS_DONE]
 
     STATUS_TRANSITIONS = {
         STATUS_NEW:           [STATUS_DIAGNOSED, STATUS_CANCELLED],
@@ -101,32 +107,40 @@ class Repair(models.Model):
         STATUS_CANCELLED:     [],
     }
 
-    number              = models.CharField('Номер заявки', max_length=20, unique=True, blank=True)
-    client              = models.ForeignKey(Client, on_delete=models.PROTECT,
-                                             related_name='repairs', verbose_name='Клієнт')
-    device              = models.ForeignKey(Device, on_delete=models.PROTECT,
-                                             related_name='repairs', verbose_name='Пристрій',
-                                             null=True, blank=True)
+    number = models.CharField('Номер заявки', max_length=20, unique=True, blank=True)
+    client = models.ForeignKey(
+        Client, on_delete=models.PROTECT,
+        related_name='repairs', verbose_name='Клієнт')
+    device = models.ForeignKey(
+        Device, on_delete=models.PROTECT,
+        related_name='repairs', verbose_name='Пристрій',
+        null=True, blank=True)
     problem_description = models.TextField('Опис проблеми')
-    diagnosis           = models.TextField('Діагноз', blank=True)
-    work_done           = models.TextField('Виконані роботи', blank=True)
-    master              = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
-                                             related_name='assigned_repairs', verbose_name='Майстер')
-    status              = models.CharField('Статус', max_length=20,
-                                            choices=STATUS_CHOICES, default=STATUS_NEW)
-    priority            = models.CharField('Пріоритет', max_length=10,
-                                            choices=PRIORITY_CHOICES, default='normal')
-    estimated_cost      = models.DecimalField('Орієнтовна вартість', max_digits=10,
-                                               decimal_places=2, null=True, blank=True)
-    labor_cost          = models.DecimalField('Вартість робіт', max_digits=10,
-                                               decimal_places=2, null=True, blank=True)
-    created_at          = models.DateTimeField('Дата прийому', auto_now_add=True)
-    updated_at          = models.DateTimeField('Дата оновлення', auto_now=True)
-    deadline            = models.DateField('Дедлайн', null=True, blank=True)
-    completed_at        = models.DateTimeField('Дата завершення', null=True, blank=True)
-    issued_at           = models.DateTimeField('Дата видачі', null=True, blank=True)
-    created_by          = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
-                                             related_name='created_repairs', verbose_name='Прийнятий')
+    diagnosis = models.TextField('Діагноз', blank=True)
+    work_done = models.TextField('Виконані роботи', blank=True)
+    master = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='assigned_repairs', verbose_name='Майстер')
+    status = models.CharField(
+        'Статус', max_length=20,
+        choices=STATUS_CHOICES, default=STATUS_NEW)
+    priority = models.CharField(
+        'Пріоритет', max_length=10,
+        choices=PRIORITY_CHOICES, default='normal')
+    estimated_cost = models.DecimalField(
+        'Орієнтовна вартість', max_digits=10,
+        decimal_places=2, null=True, blank=True)
+    labor_cost = models.DecimalField(
+        'Вартість робіт', max_digits=10,
+        decimal_places=2, null=True, blank=True)
+    created_at = models.DateTimeField('Дата прийому', auto_now_add=True)
+    updated_at = models.DateTimeField('Дата оновлення', auto_now=True)
+    deadline = models.DateField('Дедлайн', null=True, blank=True)
+    completed_at = models.DateTimeField('Дата завершення', null=True, blank=True)
+    issued_at = models.DateTimeField('Дата видачі', null=True, blank=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='created_repairs', verbose_name='Прийнятий')
 
     class Meta:
         verbose_name = 'Заявка на ремонт'
@@ -156,7 +170,9 @@ class Repair(models.Model):
         return self.status in self.ACTIVE_STATUSES
 
     def can_add_parts(self):
-        return self.status in [self.STATUS_DIAGNOSED, self.STATUS_IN_PROGRESS, self.STATUS_WAITING_PARTS]
+        return self.status in [
+            self.STATUS_DIAGNOSED, self.STATUS_IN_PROGRESS, self.STATUS_WAITING_PARTS
+        ]
 
     def is_cost_locked(self):
         return self.status in self.COST_LOCKED_STATUSES
@@ -196,9 +212,9 @@ class Repair(models.Model):
 
 
 class RepairComment(models.Model):
-    repair     = models.ForeignKey(Repair, on_delete=models.CASCADE, related_name='comments')
-    author     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    text       = models.TextField('Коментар')
+    repair = models.ForeignKey(Repair, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    text  = models.TextField('Коментар')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -209,10 +225,10 @@ class RepairComment(models.Model):
 
 
 class Part(models.Model):
-    repair   = models.ForeignKey(Repair, on_delete=models.CASCADE, related_name='parts')
-    name     = models.CharField('Назва запчастини', max_length=200)
+    repair = models.ForeignKey(Repair, on_delete=models.CASCADE, related_name='parts')
+    name = models.CharField('Назва запчастини', max_length=200)
     quantity = models.PositiveIntegerField('Кількість', default=1)
-    price    = models.DecimalField('Ціна', max_digits=10, decimal_places=2)
+    price = models.DecimalField('Ціна', max_digits=10, decimal_places=2)
 
     class Meta:
         verbose_name = 'Запчастина'
