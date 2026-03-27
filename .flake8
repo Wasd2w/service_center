@@ -1,0 +1,18 @@
+[flake8]
+max-line-length = 100
+max-complexity = 10
+exclude =
+    .git,
+    __pycache__,
+    migrations,
+    .venv,
+    venv,
+    *.egg-info,
+    db.sqlite3,
+    static
+ignore =
+    E203,
+    W503
+per-file-ignores =
+    */migrations/*.py:E501,F401
+    manage.py:F401
