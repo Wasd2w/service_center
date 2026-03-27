@@ -1,5 +1,6 @@
 import random
-from datetime import date, timedelta
+from datetime import timedelta
+
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -54,10 +55,9 @@ WORK_DONE = [
 class Command(BaseCommand):
     help = 'Заповнити базу тестовими даними'
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, i=None, **kwargs):
         self.stdout.write('Створення користувачів...')
 
-        # Admin
         admin, _ = User.objects.get_or_create(username='admin')
         admin.set_password('admin123')
         admin.is_staff = True
@@ -66,7 +66,6 @@ class Command(BaseCommand):
         admin.last_name = 'Системи'
         admin.save()
 
-        # Masters
         masters = []
         master_data = [
             ('master1', 'Іван', 'Коваленко', 'master123'),
@@ -120,7 +119,7 @@ class Command(BaseCommand):
         ]
 
         devices = []
-        for i, (dtype, brand, model) in enumerate(device_data):
+        for _i, (dtype, brand, model) in enumerate(device_data):
             client = clients[i % len(clients)]
             d, _ = Device.objects.get_or_create(
                 client=client, brand=brand, model=model,
@@ -129,7 +128,10 @@ class Command(BaseCommand):
             devices.append(d)
 
         self.stdout.write('Створення заявок...')
-        statuses = ['new', 'diagnosed', 'in_progress', 'waiting_parts', 'done', 'issued', 'cancelled']
+        statuses = [
+            'new', 'diagnosed', 'in_progress', 'waiting_parts',
+            'done', 'issued', 'cancelled',
+        ]
         priorities = ['low', 'normal', 'normal', 'high', 'urgent']
 
         for i in range(40):
@@ -163,7 +165,6 @@ class Command(BaseCommand):
 
             repair.save()
 
-            # Add parts to some repairs
             if status in ['done', 'issued', 'in_progress'] and random.random() > 0.4:
                 parts_list = [
                     ('Акумулятор', 1, random.randint(400, 1200)),
@@ -176,7 +177,6 @@ class Command(BaseCommand):
                 for name, qty, price in random.sample(parts_list, random.randint(1, 2)):
                     Part.objects.create(repair=repair, name=name, quantity=qty, price=price)
 
-            # Add comment to some repairs
             if random.random() > 0.6:
                 RepairComment.objects.create(
                     repair=repair,

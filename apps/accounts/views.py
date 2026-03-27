@@ -9,10 +9,17 @@ from django import forms
 class LoginForm(forms.Form):
     username = forms.CharField(
         label='Логін',
-        widget=forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Введіть логін', 'autofocus': True}))
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'Введіть логін',
+            'autofocus': True,
+        }))
     password = forms.CharField(
         label='Пароль',
-        widget=forms.PasswordInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Введіть пароль'}))
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'Введіть пароль',
+        }))
 
 
 class ProfileForm(forms.ModelForm):
@@ -27,9 +34,15 @@ class ProfileForm(forms.ModelForm):
 
 
 class PasswordChangeForm(forms.Form):
-    old_password = forms.CharField(label='Поточний пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    new_password1 = forms.CharField(label='Новий пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    new_password2 = forms.CharField(label='Повторіть новий пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    old_password = forms.CharField(
+        label='Поточний пароль',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password1 = forms.CharField(
+        label='Новий пароль',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password2 = forms.CharField(
+        label='Повторіть новий пароль',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     def clean(self):
         d = super().clean()

@@ -1,13 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from .models import Repair
 
+from .models import Repair
 
 
 class RepairTransitionError(ValidationError):
     pass
-def check_unique_active_repair(client, device, exclude_pk=None):
 
+
+def check_unique_active_repair(client, device, exclude_pk=None):
     if device is None:
         return
 
@@ -27,8 +28,8 @@ def check_unique_active_repair(client, device, exclude_pk=None):
             f'Спочатку завершіть або скасуйте попередню заявку.'
         )
 
-def validate_transition(repair: Repair, new_status: str) -> None:
 
+def validate_transition(repair: Repair, new_status: str) -> None:
     current = repair.status
 
     if current == new_status:
@@ -38,7 +39,7 @@ def validate_transition(repair: Repair, new_status: str) -> None:
 
     if new_status not in allowed:
         current_label = dict(Repair.STATUS_CHOICES).get(current, current)
-        new_label     = dict(Repair.STATUS_CHOICES).get(new_status, new_status)
+        new_label = dict(Repair.STATUS_CHOICES).get(new_status, new_status)
         raise RepairTransitionError(
             f'Перехід «{current_label}» → «{new_label}» заборонений. '
             f'Дозволені переходи: {_labels(allowed)}.'
@@ -74,7 +75,6 @@ def _labels(status_keys):
 
 
 def apply_field_restrictions(repair: Repair, data: dict) -> dict:
-
     new_status = data.get('status', repair.status)
     cleaned = dict(data)
 
@@ -89,17 +89,13 @@ def apply_field_restrictions(repair: Repair, data: dict) -> dict:
 
     return cleaned
 
+
 @transaction.atomic
 def update_repair(repair: Repair, data: dict, user) -> Repair:
-
     new_status = data.get('status', repair.status)
-
     validate_transition(repair, new_status)
-
     data = apply_field_restrictions(repair, data)
-
     for field, value in data.items():
         setattr(repair, field, value)
-
     repair.save()
     return repair

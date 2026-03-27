@@ -5,7 +5,7 @@ from django.db.models import Q, Count
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 
-from .models import Repair, Client, Device, RepairComment, Part
+from .models import Repair, Client, Device, Part
 from .forms import (RepairForm, RepairUpdateForm, ClientForm, DeviceForm,
                     RepairCommentForm, PartForm, RepairFilterForm)
 from .services import update_repair, RepairTransitionError
@@ -54,11 +54,11 @@ def repair_list(request):
         if form.cleaned_data.get('search'):
             q = form.cleaned_data['search']
             repairs = repairs.filter(
-                Q(number__icontains=q) |
-                Q(client__first_name__icontains=q) |
-                Q(client__last_name__icontains=q) |
-                Q(client__phone__icontains=q) |
-                Q(problem_description__icontains=q))
+                Q(number__icontains=q)
+                | Q(client__first_name__icontains=q)
+                | Q(client__last_name__icontains=q)
+                | Q(client__phone__icontains=q)
+                | Q(problem_description__icontains=q))
         if form.cleaned_data.get('status'):
             repairs = repairs.filter(status=form.cleaned_data['status'])
         if form.cleaned_data.get('priority'):
@@ -102,7 +102,7 @@ def repair_detail(request, pk):
         elif 'add_part' in request.POST:
             if not parts_allowed:
                 messages.error(request,
-                    'Запчастини можна додавати лише при статусах: '
+                    'Запчастини можна додавати лише при статусах: '         
                     'Діагностовано, В роботі, Очікування запчастин.')
                 return redirect('repair_detail', pk=pk)
             part_form = PartForm(request.POST)
@@ -203,10 +203,10 @@ def client_list(request):
     clients = Client.objects.annotate(repair_count=Count('repairs')).order_by('-created_at')
     if search:
         clients = clients.filter(
-            Q(first_name__icontains=search) |
-            Q(last_name__icontains=search)  |
-            Q(phone__icontains=search)      |
-            Q(email__icontains=search))
+            Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+            | Q(phone__icontains=search)
+            | Q(email__icontains=search))
     return render(request, 'repairs/client_list.html', {'clients': clients, 'search': search})
 
 
@@ -320,8 +320,10 @@ def export_repairs_excel(request):
     ws.append(headers)
     for col in range(1, len(headers) + 1):
         cell = ws.cell(row=1, column=col)
-        cell.font = hf; cell.fill = hfil
-        cell.alignment = ca; cell.border = tb
+        cell.font = hf
+        cell.fill = hfil
+        cell.alignment = ca
+        cell.border = tb
 
     sm = dict(Repair.STATUS_CHOICES)
     pm = dict(Repair.PRIORITY_CHOICES)

@@ -2,138 +2,81 @@
 
 ## Обраний лінтер та причини вибору
 
-Проєкт **Service Center** написаний на **Python 3.12 / Django 4.2**.
-Обрано такий стек інструментів:
-
 | Інструмент | Призначення | Чому обрано |
 |---|---|---|
-| **flake8** | Перевірка стилю (PEP 8), виявлення помилок | Швидкий, легко конфігурується, підтримує плагіни |
-| **black** | Авто-форматування | Детерміністичний — один правильний формат |
-| **mypy** | Статична перевірка типів | Виявляє помилки типів до запуску |
-| **pylint** | Комплексний аналіз | Перевіряє логіку, складність, архітектуру |
-| **pre-commit** | Git-хуки | Автоматичний запуск перед кожним комітом |
+| **flake8** | PEP 8, помилки, складність | Швидкий, розширюється плагінами |
+| **black** | Авто-форматування | Детерміністичний результат |
+| **mypy** | Статична типізація | Виявляє помилки типів до запуску |
+| **pre-commit** | Git-хуки | Автозапуск перед кожним комітом |
 
-## Базові правила та їх пояснення
+## Базові правила (.flake8)
 
 ```ini
-# .flake8
-max-line-length = 100     # Рядки >100 символів важко читати
-max-complexity = 10       # Обмеження цикломатичної складності функцій
-exclude = migrations      # Автозгенерований код не перевіряємо
-ignore = E203, W503       # Сумісність з black-форматуванням
+max-line-length = 100
+max-complexity  = 10
+ignore = E203, W503, E221, E241
 ```
 
-| Код | Правило | Пояснення |
+| Код | Пояснення | Рішення |
 |---|---|---|
-| E302 | 2 порожні рядки між функціями | Читабельність top-level визначень |
-| E501 | Максимальна довжина рядка 100 | Читабельність без горизонтального скролу |
-| F401 | Невикористані імпорти | Чистота простору імен, менше плутанини |
-| W605 | Невалідні escape-послідовності | Потенційні баги у regex/рядках |
-| E711 | `== None` замість `is None` | Коректна перевірка на None |
+| E221/E241 | Вирівнювання пробілами в стовпці | Ігноруємо (авторський стиль проєкту) |
+| E501 | Рядок >100 символів | Розбиваємо на кілька рядків |
+| F401 | Невикористані імпорти | Видаляємо |
+| E302/E303/E305 | Порожні рядки | Виправляємо |
+| W504 | Line break after binary operator | Виправляємо |
+| E128/E127 | Відступи у продовженнях рядків | Виправляємо |
+| E702 | Два оператори на одному рядку | Виправляємо |
+| F841/B007 | Невикористані змінні | Видаляємо або перейменовуємо |
 
-## Запуск лінтера
+## Результати початкового запуску
 
-### Встановлення
-```bash
-pip install -r requirements.txt
 ```
-
-### Flake8
-```bash
-# Перевірити весь проєкт
-flake8 .
-
-# З підрахунком та статистикою
 flake8 . --count --statistics
-
-# Конкретний файл
-flake8 apps/repairs/views.py
 ```
 
-### Black
+```
+E241  65    (multiple spaces after ':' or ',')
+E221  60    (multiple spaces before operator)
+E501  24    (line too long)
+E128  12    (continuation line under-indented)
+E127   9    (continuation line over-indented)
+E302   8    (expected 2 blank lines)
+W504   7    (line break after binary operator)
+F401   5    (imported but unused)
+C901   2    (function too complex)
+E702   2    (multiple statements on one line)
+E272   1    (multiple spaces before keyword)
+F841   1    (local variable assigned but never used)
+B007   1    (loop variable not used)
+E303   1    (too many blank lines)
+E131   1    (continuation line unaligned)
+E305   1    (expected 2 blank lines after function)
+─────────────────
+TOTAL  200
+```
+
+## Інструкція з запуску
+
 ```bash
-black --check .        # тільки перевірка
-black .                # авто-форматування
-```
+pip install flake8 black mypy pre-commit
 
-### Mypy
-```bash
-mypy apps/
-```
-
-### Комплексна перевірка
-```bash
-python scripts/lint_check.py
-# або
-make check-all
-```
-
-## Результати початкового запуску flake8
-
-```
-apps/accounts/views.py:12: E501 line too long (131 > 100 characters)
-apps/accounts/views.py:15: E501 line too long (117 > 100 characters)
-apps/accounts/views.py:30: E501 line too long (120 > 100 characters)
-apps/accounts/views.py:31: E501 line too long (118 > 100 characters)
-apps/accounts/views.py:32: E501 line too long (128 > 100 characters)
-apps/accounts/views.py:60: E302 expected 2 blank lines, got 0
-apps/accounts/views.py:66: E302 expected 2 blank lines, got 0
-apps/analytics/views.py:4: F401 'Sum' imported but unused
-apps/analytics/views.py:11: F401 'Part' imported but unused
-apps/analytics/views.py:23: E302 expected 2 blank lines, got 0
-apps/repairs/admin.py:6: E302 expected 2 blank lines, got 0
-apps/repairs/admin.py:12: E302 expected 2 blank lines, got 0
-apps/repairs/admin.py:30: E302 expected 2 blank lines, got 0
-apps/repairs/forms.py:24: W605 invalid escape sequence
-apps/repairs/forms.py:34: W605 invalid escape sequence
-apps/repairs/forms.py:52-59: E501 line too long (6 violations)
-apps/repairs/forms.py:70: W605 invalid escape sequence
-apps/repairs/forms.py:85-87: E501 line too long (3 violations)
-apps/repairs/forms.py:105,363,365: E501 line too long
-apps/repairs/management/commands/seed_data.py:2: F401 'date' imported but unused
-apps/repairs/management/commands/seed_data.py:132: E501 line too long
-apps/repairs/models.py:45,86-89,114,129,159: E501 line too long (7 violations)
-apps/repairs/services.py:9: E302 expected 2 blank lines, got 0
-apps/repairs/services.py:93: E302 expected 2 blank lines, got 0
-apps/repairs/views.py:8: F401 'RepairComment' imported but unused
-apps/repairs/views.py:23-297: E302 expected 2 blank lines (14 violations)
-service_center/urls.py:5: F401 'RedirectView' imported but unused
-
-Всього: 54 проблеми
-  E302: 20
-  E501: 27
-  F401:  4
-  W605:  3
+flake8 .                        # перевірка
+flake8 . --count --statistics   # з підрахунком
+black --check .                 # перевірка форматування
+black .                         # авто-форматування
+mypy apps/                      # перевірка типів
+python scripts/lint_check.py    # все разом
 ```
 
 ## Git Hooks
 
-```yaml
-# .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/psf/black
-    hooks: [id: black]
-  - repo: https://github.com/pycqa/flake8
-    hooks: [id: flake8]
+```bash
+pre-commit install
+pre-commit run --all-files
 ```
+
+## Статична типізація
 
 ```bash
-pre-commit install       # активувати хуки
-pre-commit run --all-files  # ручний запуск
+mypy apps/
 ```
-
-## Інтеграція з процесом збірки
-
-```bash
-make lint        # flake8 + black --check
-make format      # black .
-make check-all   # flake8 + black + mypy
-```
-
-## Статична типізація (mypy)
-
-Конфіг у `mypy.ini`. Запуск: `mypy apps/`
-
-Ключові налаштування:
-- `warn_return_any = True` — попередження при поверненні `Any`
-- `ignore_missing_imports = True` — Django stubs необов'язкові

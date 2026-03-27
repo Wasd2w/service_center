@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from .models import Repair, Client, Device, RepairComment, Part
 from .services import check_unique_active_repair
 
+
 def only_letters(value, field_name):
     v = value.strip()
     if not v:
@@ -35,6 +36,7 @@ def validate_brand_model(value, label):
         raise forms.ValidationError(f"Поле «{label}» містить недопустимі символи.")
     return v
 
+
 class ClientForm(forms.ModelForm):
     city = forms.CharField(
         label='Місто', required=False,
@@ -49,11 +51,15 @@ class ClientForm(forms.ModelForm):
         model = Client
         fields = ['first_name', 'last_name', 'phone', 'email', 'city', 'street', 'building']
         widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Введіть імʼя"}),
-            'last_name':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введіть прізвище'}),
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': "Введіть імʼя"}),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'Введіть прізвище'}),
             'phone': forms.TextInput(attrs={
-                'class': 'form-control', 'id': 'phone-input',
-                'placeholder': '+380XXXXXXXXX', 'maxlength': '13'}),
+                'class': 'form-control',
+                'id': 'phone-input',
+                'placeholder': '+380XXXXXXXXX',
+                'maxlength': '13'}),
             'email':    forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
             'street':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'вул. Хрещатик'}),
             'building': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12, кв. 34'}),
@@ -166,6 +172,7 @@ class RepairForm(forms.ModelForm):
                 self.add_error('device', exc)
 
         return cleaned
+
 
 class RepairUpdateForm(forms.ModelForm):
 
@@ -293,7 +300,6 @@ class RepairUpdateForm(forms.ModelForm):
         master     = cleaned.get('master')
         inst       = self.instance
         cur_status = inst.status if inst else None
-        has_parts  = inst.parts.exists() if inst else False
 
         if not new_status:
             return cleaned
@@ -308,9 +314,11 @@ class RepairUpdateForm(forms.ModelForm):
 
         if new_status in self.MASTER_REQUIRED and not master:
             if not (cur_status == Repair.STATUS_DONE and inst and inst.master):
-                self.add_error('master',
+                self.add_error(
+                    'master',
                     f'Призначте майстра для статусу '
-                    f'«{dict(Repair.STATUS_CHOICES).get(new_status, new_status)}».')
+                    f'«{dict(Repair.STATUS_CHOICES).get(new_status, new_status)}».',
+                )
 
         diagnosis = (cleaned.get('diagnosis') or '').strip()
         if not diagnosis and inst:
@@ -337,6 +345,7 @@ class RepairUpdateForm(forms.ModelForm):
                 'Вкажіть вартість робіт (введіть 0 якщо безкоштовно).')
 
         return cleaned
+
 
 class RepairCommentForm(forms.ModelForm):
     class Meta:
