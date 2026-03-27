@@ -1,0 +1,30 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    name: Flake8 + mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run flake8
+        run: flake8 apps/ --config=.flake8
+
+      - name: Run mypy
+        run: mypy apps/ --config-file=mypy.ini
+        continue-on-error: true  # mypy як інформаційний (не блокуючий)
